@@ -1,7 +1,7 @@
-import Manager from './manager';
-import Component from './component';
+var Manager = require('./manager');
+var Component = require('./component');
 
-export default {
+module.exports = {
   Manager,
   Component
-}
+};
