@@ -53,7 +53,7 @@ module.exports = function Component( options ) {
     var _outputAreaElement = function (msg) {
       var msg_id = msg.parent_header.msg_id;
       var cell = Jupyter.notebook.get_msg_cell(msg_id);
-      return cell.react_dom.widget_subarea;
+      return cell.react_dom.subarea;
     };
 
     // register message callback
