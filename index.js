@@ -35,7 +35,6 @@ var init = function( Jupyter, events, comm_target, component_options ) {
          */
         // TODO need to handle clear out output calls
         var handle_cell = function(cell) {
-            console.log('HANDLE CELL', cell);
             if (cell.cell_type==='code') {
                 cell.react_dom = new Area( cell );
             }
