@@ -47,7 +47,7 @@ module.exports = function Component( options ) {
       ReactDom.render(element, display);
     };
 
-    var _getMsgCell = function( mid ) {
+    var _getMsgCell = function( msg ) {
       var msg_id = msg.parent_header.msg_id;
       return Jupyter.notebook.get_msg_cell( msg_id );
     };
