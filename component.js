@@ -43,7 +43,6 @@ module.exports = function Component( options ) {
       }
       
       var cell = _getMsgCell( msg );
-      cell.react_dom.area.style.display = 'block';
       ReactDom.render(element, display);
     };
 
