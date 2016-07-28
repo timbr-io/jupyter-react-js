@@ -35,8 +35,12 @@ var init = function( Jupyter, events, comm_target, component_options ) {
          */
         // TODO need to handle clear out output calls
         var handle_cell = function(cell) {
-            if (cell.cell_type==='code') {
-                cell.react_dom = new Area( cell );
+            if ( cell.cell_type === 'code' ) {
+                if ( !cell.react_dom ) {
+                    cell.react_dom = new Area( cell );
+                } else if ( cell.react_dom.clear !== undefined ) {
+                    cell.react_dom.clear();
+                }
             }
         };
 
@@ -61,8 +65,8 @@ var init = function( Jupyter, events, comm_target, component_options ) {
         });
 
         events.on( 'delete.Cell', function( event, data ) {
-            if ( data.cell && data.cell.widgetarea ) {
-                data.cell.react_dom.remove();
+            if ( data.cell && data.cell.react_dom ) {
+                data.cell.react_dom.clear();
             }
         });
     });

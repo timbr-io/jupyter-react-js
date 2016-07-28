@@ -41,7 +41,15 @@ module.exports = function Component( options ) {
       } else {
         display = _outputAreaElement(msg);
       }
+      
+      var cell = _getMsgCell( msg );
+      cell.react_dom.area.style.display = 'block';
       ReactDom.render(element, display);
+    };
+
+    var _getMsgCell = function( mid ) {
+      var msg_id = msg.parent_header.msg_id;
+      return Jupyter.notebook.get_msg_cell( msg_id );
     };
 
     // Create React Elements from components and props 
@@ -51,8 +59,7 @@ module.exports = function Component( options ) {
 
     // Get the DOM Element to render to
     var _outputAreaElement = function (msg) {
-      var msg_id = msg.parent_header.msg_id;
-      var cell = Jupyter.notebook.get_msg_cell(msg_id);
+      var cell = _getMsgCell( msg );
       return cell.react_dom.subarea;
     };
 
