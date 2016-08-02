@@ -24,10 +24,14 @@ var init = function( Jupyter, events, comm_target, component_options ) {
          * creates an instance of a "Manager" used to listen for new comms and create new components
          */
         var handle_kernel = function(Jupyter, kernel) {
-          //if ( kernel.comm_manager && !kernel.component_manager ) {
+          if ( kernel.comm_manager && kernel.component_manager === undefined ) {
+            kernel.component_manager = new Manager.ComponentManager( kernel );
+          } 
+
+          if ( kernel.component_manager ) {
             var Component = ReactComponent( component_options );
-            kernel.component_manager = new Manager( comm_target, kernel, Component );
-          //}
+            kernel.component_manager.register( comm_target, Component ) 
+          }
         };
 
         /**
