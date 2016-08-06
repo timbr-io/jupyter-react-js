@@ -15,7 +15,7 @@ var ReactComponent = require('./component');
 
 var init = function( Jupyter, events, comm_target, component_options ) {
 
-    requirejs([ "react", "react-dom" ], function( React, ReactDom ) {
+    requirejs([ "react", "react-dom", "services/kernels/comm" ], function( React, ReactDom, Comm ) {
         window.React = React;
         window.ReactDom = ReactDom;
     
@@ -25,7 +25,7 @@ var init = function( Jupyter, events, comm_target, component_options ) {
          */
         var handle_kernel = function(Jupyter, kernel) {
           if ( kernel.comm_manager && kernel.component_manager === undefined ) {
-            kernel.component_manager = new Manager.ComponentManager( kernel );
+            kernel.component_manager = new Manager.ComponentManager( kernel, Comm );
           } 
 
           if ( kernel.component_manager ) {
