@@ -1,6 +1,6 @@
 {
   "name": "jupyter-react-js",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Jupyter React component manager and base class for using inside client side Jupyter Notebook extensions",
   "main": "index.js",
   "repository": {
