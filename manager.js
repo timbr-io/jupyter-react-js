@@ -32,6 +32,7 @@ function Manager( kernel, comm ) {
                 { content: { data: { module: module } } }, 
                 cell 
               )
+              self.components[ target ][ newComm.comm_id ].render();
             }
           }
         });

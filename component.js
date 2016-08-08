@@ -9,7 +9,6 @@ module.exports = function Component( options ) {
 
     // Handle all messages over this comm
     this.handleMsg = msg => {
-      console.log('MESSAGE', msg)
       var data = msg.content.data;
       switch (data.method) {
         case "update":
@@ -58,6 +57,14 @@ module.exports = function Component( options ) {
       }
       ReactDom.render( element, display );
     };
+
+    this.render = function( ) {
+      var newProps = props.content.data;
+      newProps.cell = this.cell;
+      newProps.comm = comm;
+      var element = this._createMarkup( options.components[ this.module ], newProps );
+      this._render( element, {} );
+    }
 
     this._getCellIndex = function( cell_id ) {
       var idx;
