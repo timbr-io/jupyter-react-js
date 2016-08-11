@@ -13,7 +13,7 @@ module.exports = function Component( options ) {
       switch (data.method) {
         case "update":
           if ( options.on_update ) {
-            return options.on_update(module, data.props);
+            return options.on_update(this.module, data.props);
           }
           // else re-render
           this.renderComponent( msg, data.props );
