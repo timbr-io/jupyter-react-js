@@ -19,16 +19,15 @@ function Manager( kernel, comm ) {
     this.kernel.comm_info( target, function( info ) { 
       const comms = Object.keys( info[ 'content' ][ 'comms' ] );
       const md = Jupyter.notebook.metadata;
-
       // TODO
       // pretty nasty right here, confusing to follow
       if ( comms.length ) {
         comms.forEach( comm_id => {
           if ( md.react_comms && md.react_comms[ comm_id ] ) {
-            const cell = self._get_cell( md.react_comms[ comm_id ] );
+            const cell = self._getCell( md.react_comms[ comm_id ] );
             if ( cell ) {
               const module = comm_id.split( '.' ).slice( -1 )[ 0 ];
-              const newComm = self._create_comm( target, comm_id );
+              const newComm = self._createComm( self.kernel, target, comm_id );
               const newComp = self.components[ target ].Component( 
                 newComm,
                 { content: { data: { module } } },
@@ -43,13 +42,13 @@ function Manager( kernel, comm ) {
     })
   };
 
-  this._get_cell = function( index ) {
+  this._getCell = function( index ) {
     return Jupyter.notebook.get_cells()[ parseInt(index) ];
   }
 
-  this._create_comm = function( target, comm_id ) {
+  this._createComm = function( kernel, target, comm_id ) {
     const newComm = new this.comm.Comm( target, comm_id );
-    Jupyter.notebook.kernel.comm_manager.register_comm( newComm );
+    kernel.comm_manager.register_comm( newComm );
     return newComm;
   }
 

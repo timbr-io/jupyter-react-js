@@ -228,7 +228,7 @@ define(function() { return /******/ (function(modules) { // webpackBootstrap
 	            var cell = self._get_cell(md.react_comms[comm_id]);
 	            if (cell) {
 	              var module = comm_id.split('.').slice(-1)[0];
-	              var newComm = self._create_comm(target, comm_id);
+	              var newComm = self._create_comm(self.kernel, target, comm_id);
 	              var newComp = self.components[target].Component(newComm, { content: { data: { module: module } } }, cell);
 	              newComp.render();
 	              self.components[target][newComm.comm_id] = newComp;
@@ -243,9 +243,9 @@ define(function() { return /******/ (function(modules) { // webpackBootstrap
 	    return Jupyter.notebook.get_cells()[parseInt(index)];
 	  };
 
-	  this._create_comm = function (target, comm_id) {
+	  this._create_comm = function (kernel, target, comm_id) {
 	    var newComm = new this.comm.Comm(target, comm_id);
-	    Jupyter.notebook.kernel.comm_manager.register_comm(newComm);
+	    kernel.comm_manager.register_comm(newComm);
 	    return newComm;
 	  };
 
@@ -271,29 +271,35 @@ define(function() { return /******/ (function(modules) { // webpackBootstrap
 
 	    this.cell = cell;
 	    this.comm = comm;
-	    this.module = props.content.data.module;
-	    this.domId = props.content.data.domId;
 
-	    // Handle all messages over this comm
+	    /**
+	     * handleMsg 
+	     * Handle all messages over this comm
+	     */
 	    this.handleMsg = function (msg) {
 	      var data = msg.content.data;
 	      switch (data.method) {
 	        case "update":
 	          if (options.on_update) {
-	            return options.on_update(_this.module, data.props, msg.content.comm_id);
+	            return options.on_update(props.content.data.module, data.props, msg.content.comm_id);
 	          }
 	          // else re-render
-	          _this.renderComponent(msg, data.props);
+	          _this.render(msg, data.props);
 	          break;
 	        case "display":
 	          // save comm id and cell id to notebook.metadata
-	          _this._saveComponent(msg);
+	          _this._save(msg, function () {
+	            _this.render(msg);
+	          });
 	          break;
 	      }
 	    };
 
-	    // save cell index to notebook metadata as a string
-	    this._saveComponent = function (msg) {
+	    /**
+	     * _save
+	     * save cell index to notebook metadata as a string
+	     */
+	    this._save = function (msg, done) {
 	      var cell = this._getMsgCell(msg);
 	      var md = Jupyter.notebook.metadata;
 	      if (cell) {
@@ -302,39 +308,38 @@ define(function() { return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        md.react_comms[comm.comm_id] = this._getCellIndex(cell.cell_id) + '';
 	      }
-	      this.renderComponent(msg);
+	      done();
 	    };
 
-	    // create reacte element and call _render 
-	    this.renderComponent = function (msg, newProps) {
-	      newProps = newProps || props.content.data;
-	      newProps.cell = this._getMsgCell(msg);
+	    /**
+	     * render
+	     * appends the components to the dom
+	     *
+	     */
+	    this.render = function (msg, _newProps) {
+	      var newProps = _newProps || props.content.data;
+	      newProps.cell = this.cell || this._getMsgCell(msg);
 	      newProps.comm = comm;
-	      var element = this._createMarkup(options.components[this.module], newProps);
-	      this._render(element, msg);
-	    };
 
-	    // Render the component to either the output cell or given domId
-	    this._render = function (element, msg) {
-	      var display;
-	      if (this.domId) {
-	        display = document.getElementById(this.domId);
+	      var display = void 0;
+	      var domId = props.content.data.domId;
+
+	      if (domId) {
+	        display = document.getElementById(domId);
 	      } else {
-	        display = this._outputAreaElement(msg);
+	        display = this._outputAreaElement(msg || {});
 	      }
+
+	      var element = this._createMarkup(options.components[props.content.data.module], newProps);
 	      ReactDom.render(element, display);
 	    };
 
-	    this.render = function () {
-	      var newProps = props.content.data;
-	      newProps.cell = this.cell;
-	      newProps.comm = comm;
-	      var element = this._createMarkup(options.components[this.module], newProps);
-	      this._render(element, {});
-	    };
-
+	    /**
+	     * _getCellIndex
+	     * gets the index of a cell_id in the notebook json 
+	     */
 	    this._getCellIndex = function (cell_id) {
-	      var idx;
+	      var idx = void 0;
 	      Jupyter.notebook.get_cells().forEach(function (c, i) {
 	        if (c.cell_id === cell_id) {
 	          idx = i;
@@ -343,25 +348,55 @@ define(function() { return /******/ (function(modules) { // webpackBootstrap
 	      return idx;
 	    };
 
-	    // gets the components cell or 
+	    /**
+	     * _getMsgCell
+	     * gets the components cell or 
+	     *
+	     */
 	    this._getMsgCell = function (msg) {
 	      if (this.cell) return this.cell;
 	      var msg_id = msg.parent_header.msg_id;
 	      this.cell = Jupyter.notebook.get_msg_cell(msg_id);
+	      this._overrideClearOutput();
 	      return this.cell;
 	    };
 
-	    // Create React Elements from components and props 
+	    /**
+	     * _createMarkup
+	     * Create React Elements from components and props 
+	     *
+	     */
 	    this._createMarkup = function (component, cProps) {
 	      return React.createElement(component, cProps);
 	    };
 
-	    // Get the DOM Element to render to
+	    /**
+	     * _outputAreaElement
+	     * Get the DOM Element to render to
+	     *
+	     */
 	    this._outputAreaElement = function (msg) {
 	      var cell = this._getMsgCell(msg);
 	      return cell.react_dom.subarea;
 	    };
 
+	    /**
+	     * _overrideClearOutput
+	     * Save the original clear_output method and call react_dom.clear()
+	     * ensures react components are cleared out when clear_display is called
+	     */
+	    this._overrideClearOutput = function () {
+	      var _this2 = this;
+
+	      this.cell.clear_output = function () {
+	        Object.getPrototypeOf(_this2.cell).clear_output.call(_this2.cell);
+	        _this2.cell.react_dom.clear();
+	      };
+	    };
+
+	    if (this.cell) {
+	      this._overrideClearOutput();
+	    }
 	    // register message callback
 	    this.comm.on_msg(this.handleMsg);
 	    return this;
