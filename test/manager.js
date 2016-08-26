@@ -2,12 +2,8 @@ const test = require( 'tape' );
 const sinon = require( 'sinon' );
 const Manager = require( '../src/manager' );
 
-global.Jupyter = { 
-  notebook: { 
-    metadata: { react_comms: { 'id.module': '0' } }, 
-    get_cells: sinon.stub().returns( [{}] )
-  } 
-};
+const Notebook = require( './notebook' );
+const notebook = new Notebook( { react_comms: { 'id.module': '0' } } );
 
 const Kernel = {
   comm_manager: {

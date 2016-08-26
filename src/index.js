@@ -52,10 +52,10 @@ function init( Jupyter, events, comm_target, component_options ) {
 
     // On new kernel session create new comm managers
     if ( Jupyter.notebook && Jupyter.notebook.kernel ) {
-        handle_kernel( Jupyter, Jupyter.notebook.kernel );
+      handle_kernel( Jupyter, Jupyter.notebook.kernel );
     }
     events.on( 'kernel_created.Kernel kernel_created.Session', ( event, data ) => {
-        handle_kernel( Jupyter, data.kernel );
+      handle_kernel( Jupyter, data.kernel );
     });
 
     // Create react component areas in cells

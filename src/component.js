@@ -65,6 +65,10 @@ module.exports = function Component( options ) {
       }
 
       const element = this._createMarkup( options.components[  props.content.data.module ], newProps );
+      this._renderToDom( element, display );
+    }
+
+    this._renderToDom = function( element, display ){
       ReactDom.render( element, display );
     }
 
