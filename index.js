@@ -219,16 +219,15 @@ define(function() { return /******/ (function(modules) { // webpackBootstrap
 	    this.kernel.comm_info(target, function (info) {
 	      var comms = Object.keys(info['content']['comms']);
 	      var md = Jupyter.notebook.metadata;
-
 	      // TODO
 	      // pretty nasty right here, confusing to follow
 	      if (comms.length) {
 	        comms.forEach(function (comm_id) {
 	          if (md.react_comms && md.react_comms[comm_id]) {
-	            var cell = self._get_cell(md.react_comms[comm_id]);
+	            var cell = self._getCell(md.react_comms[comm_id]);
 	            if (cell) {
 	              var module = comm_id.split('.').slice(-1)[0];
-	              var newComm = self._create_comm(self.kernel, target, comm_id);
+	              var newComm = self._createComm(self.kernel, target, comm_id);
 	              var newComp = self.components[target].Component(newComm, { content: { data: { module: module } } }, cell);
 	              newComp.render();
 	              self.components[target][newComm.comm_id] = newComp;
@@ -239,11 +238,11 @@ define(function() { return /******/ (function(modules) { // webpackBootstrap
 	    });
 	  };
 
-	  this._get_cell = function (index) {
+	  this._getCell = function (index) {
 	    return Jupyter.notebook.get_cells()[parseInt(index)];
 	  };
 
-	  this._create_comm = function (kernel, target, comm_id) {
+	  this._createComm = function (kernel, target, comm_id) {
 	    var newComm = new this.comm.Comm(target, comm_id);
 	    kernel.comm_manager.register_comm(newComm);
 	    return newComm;
@@ -331,6 +330,10 @@ define(function() { return /******/ (function(modules) { // webpackBootstrap
 	      }
 
 	      var element = this._createMarkup(options.components[props.content.data.module], newProps);
+	      this._renderToDom(element, display);
+	    };
+
+	    this._renderToDom = function (element, display) {
 	      ReactDom.render(element, display);
 	    };
 
