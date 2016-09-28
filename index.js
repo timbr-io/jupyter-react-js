@@ -53,8 +53,8 @@ define(function() { return /******/ (function(modules) { // webpackBootstrap
 	  window.require.config({
 	    map: {
 	      "*": {
-	        "react": "https://fb.me/react-15.2.1.min.js",
-	        "react-dom": "https://fb.me/react-dom-15.2.1.min.js"
+	        "react": "https://unpkg.com/react@15.3.2/dist/react.min.js",
+	        "react-dom": "https://unpkg.com/react-dom@15.3.2/dist/react-dom.min.js"
 	      }
 	    }
 	  });
