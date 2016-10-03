@@ -1,24 +1,10 @@
-if (window.require) {
-    window.require.config({
-        map: {
-            "*" : {
-                "react": "https://fb.me/react-15.2.1.min.js",
-                "react-dom": "https://fb.me/react-dom-15.2.1.min.js"
-            }
-        }
-    });
-}
-
 const Area = require('./area');
 const Manager = require('./manager');
 const ReactComponent = require('./component');
 
-function init( Jupyter, events, comm_target, component_options ) {
+function init( Jupyter, events, commTarget, componentParams ) {
 
-  requirejs([ "react", "react-dom", "services/kernels/comm" ], function( React, ReactDom, Comm ) {
-    window.React = React;
-    window.ReactDom = ReactDom;
-  
+  requirejs([ "services/kernels/comm" ], function( Comm ) {
     /**
      * handle_kernel 
      * creates an instance of a "Manager" used to listen for new comms and create new components
@@ -29,8 +15,8 @@ function init( Jupyter, events, comm_target, component_options ) {
       } 
 
       if ( kernel.component_manager ) {
-        const Component = ReactComponent( component_options );
-        kernel.component_manager.register( comm_target, Component ) 
+        const Component = ReactComponent( componentParams );
+        kernel.component_manager.register( commTarget, Component ) 
       }
     };
 

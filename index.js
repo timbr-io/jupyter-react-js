@@ -44,7 +44,7 @@ define(function() { return /******/ (function(modules) { // webpackBootstrap
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
@@ -53,8 +53,8 @@ define(function() { return /******/ (function(modules) { // webpackBootstrap
 	  window.require.config({
 	    map: {
 	      "*": {
-	        "react": "https://fb.me/react-15.2.1.min.js",
-	        "react-dom": "https://fb.me/react-dom-15.2.1.min.js"
+	        //"react": "https://fb.me/react-15.2.1.min.js",
+	        //"react-dom": "https://fb.me/react-dom-15.2.1.min.js"
 	      }
 	    }
 	  });
@@ -66,9 +66,10 @@ define(function() { return /******/ (function(modules) { // webpackBootstrap
 
 	function init(Jupyter, events, comm_target, component_options) {
 
-	  requirejs(["react", "react-dom", "services/kernels/comm"], function (React, ReactDom, Comm) {
-	    window.React = React;
-	    window.ReactDom = ReactDom;
+	  //requirejs([ "react", "react-dom", "services/kernels/comm" ], function( React, ReactDom, Comm ) {
+	  requirejs(["services/kernels/comm"], function (Comm) {
+	    //window.React = React;
+	    //window.ReactDom = ReactDom;
 
 	    /**
 	     * handle_kernel 
@@ -135,7 +136,7 @@ define(function() { return /******/ (function(modules) { // webpackBootstrap
 	  Area: Area,
 	  init: init
 	};
-	module.exports = exports["default"];
+	module.exports = exports['default'];
 
 /***/ },
 /* 1 */
@@ -263,6 +264,8 @@ define(function() { return /******/ (function(modules) { // webpackBootstrap
 	"use strict";
 
 	// Base component that handles comm messages and renders components to notebook cell
+	//const react = require('react');
+	//const reactDom = require('react-dom');
 
 	module.exports = function Component(options) {
 	  return function (comm, props, cell) {
@@ -287,9 +290,13 @@ define(function() { return /******/ (function(modules) { // webpackBootstrap
 	          break;
 	        case "display":
 	          // save comm id and cell id to notebook.metadata
-	          _this._save(msg, function () {
+	          if (options.save) {
+	            _this._save(msg, function () {
+	              _this.render(msg);
+	            });
+	          } else {
 	            _this.render(msg);
-	          });
+	          }
 	          break;
 	      }
 	    };
@@ -334,7 +341,7 @@ define(function() { return /******/ (function(modules) { // webpackBootstrap
 	    };
 
 	    this._renderToDom = function (element, display) {
-	      ReactDom.render(element, display);
+	      options.reactDom.render(element, display);
 	    };
 
 	    /**
@@ -370,7 +377,7 @@ define(function() { return /******/ (function(modules) { // webpackBootstrap
 	     *
 	     */
 	    this._createMarkup = function (component, cProps) {
-	      return React.createElement(component, cProps);
+	      return options.react.createElement(component, cProps);
 	    };
 
 	    /**

@@ -1,4 +1,6 @@
 // Base component that handles comm messages and renders components to notebook cell
+//const react = require('react');
+//const reactDom = require('react-dom');
 
 module.exports = function Component( options ) {
   return function (comm, props, cell) {
@@ -21,9 +23,13 @@ module.exports = function Component( options ) {
           break;
         case "display":
           // save comm id and cell id to notebook.metadata
-          this._save( msg, () => {
+          if ( options.save ) {
+            this._save( msg, () => {
+              this.render( msg );
+            } );
+          } else {
             this.render( msg );
-          } );
+          }
           break;
       }
     };
@@ -69,7 +75,7 @@ module.exports = function Component( options ) {
     }
 
     this._renderToDom = function( element, display ){
-      ReactDom.render( element, display );
+      options.reactDom.render( element, display );
     }
 
     /**
@@ -105,7 +111,7 @@ module.exports = function Component( options ) {
      *
      */
     this._createMarkup = function( component, cProps ) {
-      return React.createElement( component, cProps );
+      return options.react.createElement( component, cProps );
     };
 
     /**
