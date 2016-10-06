@@ -1,8 +1,8 @@
 {
   "name": "jupyter-react-js",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Jupyter React component manager and base class for using inside client side Jupyter Notebook extensions",
-  "main": "index.js",
+  "main": "src/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/timrb.io/jupyter-react-js.git"

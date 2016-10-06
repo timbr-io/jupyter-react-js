@@ -1,4 +1,4 @@
-define(function() { return /******/ (function(modules) { // webpackBootstrap
+define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_4__, __WEBPACK_EXTERNAL_MODULE_5__) { return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 
@@ -49,28 +49,13 @@ define(function() { return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	if (window.require) {
-	  window.require.config({
-	    map: {
-	      "*": {
-	        //"react": "https://fb.me/react-15.2.1.min.js",
-	        //"react-dom": "https://fb.me/react-dom-15.2.1.min.js"
-	      }
-	    }
-	  });
-	}
-
 	var Area = __webpack_require__(1);
 	var Manager = __webpack_require__(2);
 	var ReactComponent = __webpack_require__(3);
 
-	function init(Jupyter, events, comm_target, component_options) {
+	function init(Jupyter, events, commTarget, componentParams) {
 
-	  //requirejs([ "react", "react-dom", "services/kernels/comm" ], function( React, ReactDom, Comm ) {
 	  requirejs(["services/kernels/comm"], function (Comm) {
-	    //window.React = React;
-	    //window.ReactDom = ReactDom;
-
 	    /**
 	     * handle_kernel 
 	     * creates an instance of a "Manager" used to listen for new comms and create new components
@@ -81,8 +66,8 @@ define(function() { return /******/ (function(modules) { // webpackBootstrap
 	      }
 
 	      if (kernel.component_manager) {
-	        var Component = ReactComponent(component_options);
-	        kernel.component_manager.register(comm_target, Component);
+	        var Component = ReactComponent(componentParams);
+	        kernel.component_manager.register(commTarget, Component);
 	      }
 	    };
 
@@ -259,14 +244,21 @@ define(function() { return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 3 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
+
+	var _react = __webpack_require__(4);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	var _reactDom = __webpack_require__(5);
+
+	var _reactDom2 = _interopRequireDefault(_reactDom);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	// Base component that handles comm messages and renders components to notebook cell
-	//const react = require('react');
-	//const reactDom = require('react-dom');
-
 	module.exports = function Component(options) {
 	  return function (comm, props, cell) {
 	    var _this = this;
@@ -341,7 +333,7 @@ define(function() { return /******/ (function(modules) { // webpackBootstrap
 	    };
 
 	    this._renderToDom = function (element, display) {
-	      options.reactDom.render(element, display);
+	      _reactDom2.default.render(element, display);
 	    };
 
 	    /**
@@ -377,7 +369,7 @@ define(function() { return /******/ (function(modules) { // webpackBootstrap
 	     *
 	     */
 	    this._createMarkup = function (component, cProps) {
-	      return options.react.createElement(component, cProps);
+	      return _react2.default.createElement(component, cProps);
 	    };
 
 	    /**
@@ -412,6 +404,18 @@ define(function() { return /******/ (function(modules) { // webpackBootstrap
 	    return this;
 	  };
 	};
+
+/***/ },
+/* 4 */
+/***/ function(module, exports) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_4__;
+
+/***/ },
+/* 5 */
+/***/ function(module, exports) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_5__;
 
 /***/ }
 /******/ ])});;

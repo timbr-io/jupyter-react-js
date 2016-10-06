@@ -1,5 +1,4 @@
-var version = require('./package.json').version;
-var path = require( 'path' );
+var webpack = require('webpack');
 
 const babelSettings = {
   plugins: [
@@ -19,6 +18,20 @@ module.exports = [
           filename: 'index.js',
           path: './',
           libraryTarget: 'amd'
+      },
+      externals: {
+        react: {
+            root: 'React',
+            commonjs2: 'react',
+            commonjs: 'react',
+            amd: 'react'
+        },
+        'react-dom': {
+            root: 'ReactDOM',
+            commonjs2: 'react-dom',
+            commonjs: 'react-dom',
+            amd: 'react-dom'
+        }
       },
       module : {
         loaders : [

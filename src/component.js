@@ -1,6 +1,6 @@
 // Base component that handles comm messages and renders components to notebook cell
-//const react = require('react');
-//const reactDom = require('react-dom');
+import react from 'react';
+import reactDom from 'react-dom';
 
 module.exports = function Component( options ) {
   return function (comm, props, cell) {
@@ -75,7 +75,7 @@ module.exports = function Component( options ) {
     }
 
     this._renderToDom = function( element, display ){
-      options.reactDom.render( element, display );
+      reactDom.render( element, display );
     }
 
     /**
@@ -111,7 +111,7 @@ module.exports = function Component( options ) {
      *
      */
     this._createMarkup = function( component, cProps ) {
-      return options.react.createElement( component, cProps );
+      return react.createElement( component, cProps );
     };
 
     /**
