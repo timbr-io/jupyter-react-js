@@ -1,6 +1,6 @@
 {
   "name": "jupyter-react-js",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Jupyter React component manager and base class for using inside client side Jupyter Notebook extensions",
   "main": "index.js",
   "repository": {
@@ -20,6 +20,10 @@
     "url": "https://github.com/timrb.io/jupyter-react-js/issues"
   },
   "homepage": "https://github.com/timrb.io/jupyter-react-js#readme",
+  "peerDependencies": {
+    "react": "^15.3.2",
+    "react-dom": "^15.3.2"
+  },
   "devDependencies": {
     "babel-cli": "^6.14.0",
     "babel-loader": "^6.2.5",
