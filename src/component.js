@@ -25,10 +25,10 @@ module.exports = function Component( options ) {
           // save comm id and cell id to notebook.metadata
           if ( options.save ) {
             this._save( msg, () => {
-              this.render( msg );
+              this.render( msg, data.props );
             } );
           } else {
-            this.render( msg );
+            this.render( msg, data.props );
           }
           break;
       }
@@ -57,7 +57,7 @@ module.exports = function Component( options ) {
      *
      */
     this.render = function( msg, _newProps ) {
-      const newProps = _newProps || props.content.data;
+      const newProps = _newProps || props.content.data.props || props.content.data;
       newProps.cell = this.cell || this._getMsgCell( msg );
       newProps.comm = comm;
 
