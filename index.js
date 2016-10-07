@@ -1,1 +1,421 @@
-define(["react","react-dom"],function(e,t){return function(e){function t(o){if(n[o])return n[o].exports;var r=n[o]={exports:{},id:o,loaded:!1};return e[o].call(r.exports,r,r.exports,t),r.loaded=!0,r.exports}var n={};return t.m=e,t.c=n,t.p="",t(0)}([function(e,t,n){"use strict";function o(e,t,n,o){requirejs(["services/kernels/comm"],function(i){var s=function(e,t){if(t.comm_manager&&void 0===t.component_manager&&(t.component_manager=new c.ComponentManager(t,i)),t.component_manager){var r=a(o);t.component_manager.register(n,r)}},l=function(e){"code"===e.cell_type&&(e.react_dom?void 0!==e.react_dom.clear&&e.react_dom.clear():e.react_dom=new r(e))};e.notebook&&e.notebook.kernel&&s(e,e.notebook.kernel),t.on("kernel_created.Kernel kernel_created.Session",function(t,n){s(e,n.kernel)});var u=e.notebook.get_cells();u.forEach(function(e){l(e)}),t.on("create.Cell",function(e,t){l(t.cell)}),t.on("delete.Cell",function(e,t){t.cell&&t.cell.react_dom&&t.cell.react_dom.clear()})})}Object.defineProperty(t,"__esModule",{value:!0});var r=n(1),c=n(3),a=n(2);t["default"]={Manager:c,ReactComponent:a,Area:r,init:o},e.exports=t["default"]},function(e,t){"use strict";function n(e){var t=this;this.clear=function(){t.subarea.innerHTML=""};var n=document.createElement("div");n.classList.add("jupyter-react-area"),n.classList.add("widget-area"),this.area=n;var o=document.createElement("div");o.classList.add("prompt"),n.appendChild(o);var r=document.createElement("div");return r.classList.add("jupyter-react-subarea"),r.classList.add("widget-subarea"),n.appendChild(r),this.subarea=r,e.input&&e.input.after(n),this}Object.defineProperty(t,"__esModule",{value:!0}),t["default"]=n,e.exports=t["default"]},function(e,t,n){"use strict";function o(e){return e&&e.__esModule?e:{"default":e}}var r=n(4),c=o(r),a=n(5),i=o(a);e.exports=function(e){return function(t,n,o){var r=this;return this.cell=o,this.comm=t,this.handleMsg=function(t){var o=t.content.data;switch(o.method){case"update":if(e.on_update)return e.on_update(n.content.data.module,o.props,t.content.comm_id);r.render(t,o.props);break;case"display":e.save?r._save(t,function(){r.render(t)}):r.render(t)}},this._save=function(e,n){var o=this._getMsgCell(e),r=Jupyter.notebook.metadata;o&&(r.react_comms||(r.react_comms={}),r.react_comms[t.comm_id]=this._getCellIndex(o.cell_id)+""),n()},this.render=function(o,r){var c=r||n.content.data;c.cell=this.cell||this._getMsgCell(o),c.comm=t;var a=void 0,i=n.content.data.domId;a=i?document.getElementById(i):this._outputAreaElement(o||{});var s=this._createMarkup(e.components[n.content.data.module],c);this._renderToDom(s,a)},this._renderToDom=function(e,t){i["default"].render(e,t)},this._getCellIndex=function(e){var t=void 0;return Jupyter.notebook.get_cells().forEach(function(n,o){n.cell_id===e&&(t=o)}),t},this._getMsgCell=function(e){if(this.cell)return this.cell;var t=e.parent_header.msg_id;return this.cell=Jupyter.notebook.get_msg_cell(t),this._overrideClearOutput(),this.cell},this._createMarkup=function(e,t){return c["default"].createElement(e,t)},this._outputAreaElement=function(e){var t=this._getMsgCell(e);return t.react_dom.subarea},this._overrideClearOutput=function(){var e=this;this.cell.clear_output=function(){Object.getPrototypeOf(e.cell).clear_output.call(e.cell),e.cell.react_dom.clear()}},this.cell&&this._overrideClearOutput(),this.comm.on_msg(this.handleMsg),this}}},function(e,t){"use strict";function n(e,t){return this.kernel=e,this.comm=t,this.components={},this.register=function(t,n){var o=this;this.components[t]||(this.components[t]={Component:n},e.comm_manager.register_target(t,function(e,n){"comm_open"===n.msg_type&&(o.components[t][e.comm_id]=o.components[t].Component(e,n))})),this.kernel.comm_info(t,function(e){var n=Object.keys(e.content.comms),r=Jupyter.notebook.metadata;n.length&&n.forEach(function(e){if(r.react_comms&&r.react_comms[e]){var n=o._getCell(r.react_comms[e]);if(n){var c=e.split(".").slice(-1)[0],a=o._createComm(o.kernel,t,e),i=o.components[t].Component(a,{content:{data:{module:c}}},n);i.render(),o.components[t][a.comm_id]=i}}})})},this._getCell=function(e){return Jupyter.notebook.get_cells()[parseInt(e)]},this._createComm=function(e,t,n){var o=new this.comm.Comm(t,n);return e.comm_manager.register_comm(o),o},this}Object.defineProperty(t,"__esModule",{value:!0}),t["default"]={ComponentManager:n},e.exports=t["default"]},function(t,n){t.exports=e},function(e,n){e.exports=t}])});
+define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_4__, __WEBPACK_EXTERNAL_MODULE_5__) { return /******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId])
+/******/ 			return installedModules[moduleId].exports;
+
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			exports: {},
+/******/ 			id: moduleId,
+/******/ 			loaded: false
+/******/ 		};
+
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+
+/******/ 		// Flag the module as loaded
+/******/ 		module.loaded = true;
+
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+
+
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(0);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var Area = __webpack_require__(1);
+	var Manager = __webpack_require__(2);
+	var ReactComponent = __webpack_require__(3);
+
+	function init(Jupyter, events, commTarget, componentParams) {
+
+	  requirejs(["services/kernels/comm"], function (Comm) {
+	    /**
+	     * handle_kernel 
+	     * creates an instance of a "Manager" used to listen for new comms and create new components
+	     */
+	    var handle_kernel = function handle_kernel(Jupyter, kernel) {
+	      if (kernel.comm_manager && kernel.component_manager === undefined) {
+	        kernel.component_manager = new Manager.ComponentManager(kernel, Comm);
+	      }
+
+	      if (kernel.component_manager) {
+	        var Component = ReactComponent(componentParams);
+	        kernel.component_manager.register(commTarget, Component);
+	      }
+	    };
+
+	    /**
+	     * handle_cell 
+	     * add react dom area for components to render themselves into 
+	     * @param {object} notebook cell
+	     */
+	    // TODO need to handle clear out output calls
+	    var handle_cell = function handle_cell(cell) {
+	      if (cell.cell_type === 'code') {
+	        if (!cell.react_dom) {
+	          cell.react_dom = new Area(cell);
+	        } else if (cell.react_dom.clear !== undefined) {
+	          cell.react_dom.clear();
+	        }
+	      }
+	    };
+
+	    // On new kernel session create new comm managers
+	    if (Jupyter.notebook && Jupyter.notebook.kernel) {
+	      handle_kernel(Jupyter, Jupyter.notebook.kernel);
+	    }
+	    events.on('kernel_created.Kernel kernel_created.Session', function (event, data) {
+	      handle_kernel(Jupyter, data.kernel);
+	    });
+
+	    // Create react component areas in cells
+	    // Each cell in the notebook will have an area 
+	    // that a component will render itself into
+	    var cells = Jupyter.notebook.get_cells();
+	    cells.forEach(function (cell) {
+	      handle_cell(cell);
+	    });
+
+	    events.on('create.Cell', function (event, data) {
+	      handle_cell(data.cell);
+	    });
+
+	    events.on('delete.Cell', function (event, data) {
+	      if (data.cell && data.cell.react_dom) {
+	        data.cell.react_dom.clear();
+	      }
+	    });
+	  });
+	};
+
+	exports.default = {
+	  Manager: Manager,
+	  ReactComponent: ReactComponent,
+	  Area: Area,
+	  init: init
+	};
+	module.exports = exports['default'];
+
+/***/ },
+/* 1 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	/**
+	 * Area 
+	 * defines an output area for a code cell where react components will render themselves into
+	 * 
+	 * @param {object} cell - a notebook cell to append react component areas to.
+	 *
+	 * TODO 
+	 * needs to bind to clear_display calls
+	 * could also just not do this, and append new divs to output subareas so that clear_output is auto handled...
+	 */
+	function Area(cell) {
+	  var _this = this;
+
+	  this.clear = function () {
+	    _this.subarea.innerHTML = '';
+	  };
+
+	  var area = document.createElement('div');
+	  area.classList.add('jupyter-react-area');
+	  area.classList.add('widget-area');
+	  this.area = area;
+
+	  var _prompt = document.createElement('div');
+	  _prompt.classList.add('prompt');
+	  area.appendChild(_prompt);
+
+	  var subarea = document.createElement('div');
+	  subarea.classList.add('jupyter-react-subarea');
+	  subarea.classList.add('widget-subarea');
+	  area.appendChild(subarea);
+
+	  this.subarea = subarea;
+
+	  if (cell.input) {
+	    cell.input.after(area);
+	  }
+
+	  return this;
+	};
+
+	exports.default = Area;
+	module.exports = exports['default'];
+
+/***/ },
+/* 2 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	function Manager(kernel, comm) {
+	  this.kernel = kernel;
+	  this.comm = comm;
+	  this.components = {};
+
+	  this.register = function (target, Component) {
+	    var self = this;
+	    // new targets...
+	    if (!this.components[target]) {
+	      this.components[target] = { Component: Component };
+	      kernel.comm_manager.register_target(target, function (comm, msg) {
+	        if (msg['msg_type'] === 'comm_open') {
+	          self.components[target][comm.comm_id] = self.components[target].Component(comm, msg);
+	        }
+	      });
+	    }
+
+	    // look for comms that need to be re-created (page refresh)
+	    this.kernel.comm_info(target, function (info) {
+	      var comms = Object.keys(info['content']['comms']);
+	      var md = Jupyter.notebook.metadata;
+	      // TODO
+	      // pretty nasty right here, confusing to follow
+	      if (comms.length) {
+	        comms.forEach(function (comm_id) {
+	          if (md.react_comms && md.react_comms[comm_id]) {
+	            var cell = self._getCell(md.react_comms[comm_id]);
+	            if (cell) {
+	              var module = comm_id.split('.').slice(-1)[0];
+	              var newComm = self._createComm(self.kernel, target, comm_id);
+	              var newComp = self.components[target].Component(newComm, { content: { data: { module: module } } }, cell);
+	              newComp.render();
+	              self.components[target][newComm.comm_id] = newComp;
+	            }
+	          }
+	        });
+	      }
+	    });
+	  };
+
+	  this._getCell = function (index) {
+	    return Jupyter.notebook.get_cells()[parseInt(index)];
+	  };
+
+	  this._createComm = function (kernel, target, comm_id) {
+	    var newComm = new this.comm.Comm(target, comm_id);
+	    kernel.comm_manager.register_comm(newComm);
+	    return newComm;
+	  };
+
+	  return this;
+	};
+
+	exports.default = {
+	  ComponentManager: Manager
+	};
+	module.exports = exports['default'];
+
+/***/ },
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _react = __webpack_require__(4);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	var _reactDom = __webpack_require__(5);
+
+	var _reactDom2 = _interopRequireDefault(_reactDom);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	// Base component that handles comm messages and renders components to notebook cell
+	module.exports = function Component(options) {
+	  return function (comm, props, cell) {
+	    var _this = this;
+
+	    this.cell = cell;
+	    this.comm = comm;
+
+	    /**
+	     * handleMsg 
+	     * Handle all messages over this comm
+	     */
+	    this.handleMsg = function (msg) {
+	      var data = msg.content.data;
+	      switch (data.method) {
+	        case "update":
+	          if (options.on_update) {
+	            return options.on_update(props.content.data.module, data.props, msg.content.comm_id);
+	          }
+	          // else re-render
+	          _this.render(msg, data.props);
+	          break;
+	        case "display":
+	          // save comm id and cell id to notebook.metadata
+	          if (options.save) {
+	            _this._save(msg, function () {
+	              _this.render(msg, data.props);
+	            });
+	          } else {
+	            _this.render(msg, data.props);
+	          }
+	          break;
+	      }
+	    };
+
+	    /**
+	     * _save
+	     * save cell index to notebook metadata as a string
+	     */
+	    this._save = function (msg, done) {
+	      var cell = this._getMsgCell(msg);
+	      var md = Jupyter.notebook.metadata;
+	      if (cell) {
+	        if (!md.react_comms) {
+	          md.react_comms = {};
+	        }
+	        md.react_comms[comm.comm_id] = this._getCellIndex(cell.cell_id) + '';
+	      }
+	      done();
+	    };
+
+	    /**
+	     * render
+	     * appends the components to the dom
+	     *
+	     */
+	    this.render = function (msg, _newProps) {
+	      var newProps = _newProps || props.content.data.props || props.content.data;
+	      newProps.cell = this.cell || this._getMsgCell(msg);
+	      newProps.comm = comm;
+
+	      var display = void 0;
+	      var domId = props.content.data.domId;
+
+	      if (domId) {
+	        display = document.getElementById(domId);
+	      } else {
+	        display = this._outputAreaElement(msg || {});
+	      }
+
+	      var element = this._createMarkup(options.components[props.content.data.module], newProps);
+	      this._renderToDom(element, display);
+	    };
+
+	    this._renderToDom = function (element, display) {
+	      _reactDom2.default.render(element, display);
+	    };
+
+	    /**
+	     * _getCellIndex
+	     * gets the index of a cell_id in the notebook json 
+	     */
+	    this._getCellIndex = function (cell_id) {
+	      var idx = void 0;
+	      Jupyter.notebook.get_cells().forEach(function (c, i) {
+	        if (c.cell_id === cell_id) {
+	          idx = i;
+	        }
+	      });
+	      return idx;
+	    };
+
+	    /**
+	     * _getMsgCell
+	     * gets the components cell or 
+	     *
+	     */
+	    this._getMsgCell = function (msg) {
+	      if (this.cell) return this.cell;
+	      var msg_id = msg.parent_header.msg_id;
+	      this.cell = Jupyter.notebook.get_msg_cell(msg_id);
+	      this._overrideClearOutput();
+	      return this.cell;
+	    };
+
+	    /**
+	     * _createMarkup
+	     * Create React Elements from components and props 
+	     *
+	     */
+	    this._createMarkup = function (component, cProps) {
+	      return _react2.default.createElement(component, cProps);
+	    };
+
+	    /**
+	     * _outputAreaElement
+	     * Get the DOM Element to render to
+	     *
+	     */
+	    this._outputAreaElement = function (msg) {
+	      var cell = this._getMsgCell(msg);
+	      return cell.react_dom.subarea;
+	    };
+
+	    /**
+	     * _overrideClearOutput
+	     * Save the original clear_output method and call react_dom.clear()
+	     * ensures react components are cleared out when clear_display is called
+	     */
+	    this._overrideClearOutput = function () {
+	      var _this2 = this;
+
+	      this.cell.clear_output = function () {
+	        Object.getPrototypeOf(_this2.cell).clear_output.call(_this2.cell);
+	        _this2.cell.react_dom.clear();
+	      };
+	    };
+
+	    if (this.cell) {
+	      this._overrideClearOutput();
+	    }
+	    // register message callback
+	    this.comm.on_msg(this.handleMsg);
+	    return this;
+	  };
+	};
+
+/***/ },
+/* 4 */
+/***/ function(module, exports) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_4__;
+
+/***/ },
+/* 5 */
+/***/ function(module, exports) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_5__;
+
+/***/ }
+/******/ ])});;
