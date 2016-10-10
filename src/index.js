@@ -1,23 +1,29 @@
-const Area = require('./area');
-const Manager = require('./manager');
-const ReactComponent = require('./component');
+const Output = require('./output');
+const Component = require('./component');
 
-function init( Jupyter, events, commTarget, componentParams ) {
+import React from 'react';
+import ReactDom from 'react-dom';
 
-  requirejs([ "services/kernels/comm" ], function( Comm ) {
+export default function init( Jupyter, events, commTarget, componentParams ) {
+
+  requirejs([ "services/kernels/comm" ], function( comm ) {
     /**
      * handle_kernel 
-     * creates an instance of a "Manager" used to listen for new comms and create new components
+     * registers comm targets with the kernel comm_manager
+     * when new comms are open, renders a Parent component that takes over rendering of actual components
      */
     const handle_kernel = ( Jupyter, kernel ) => {
-      if ( kernel.comm_manager && kernel.component_manager === undefined ) {
-        kernel.component_manager = new Manager.ComponentManager( kernel, Comm );
-      } 
-
-      if ( kernel.component_manager ) {
-        const Component = ReactComponent( componentParams );
-        kernel.component_manager.register( commTarget, Component ) 
-      }
+      kernel.comm_manager.register_target( commTarget, ( comm, msg ) => {
+        if ( msg[ 'msg_type' ] === 'comm_open' ) {
+          const msg_id = msg.parent_header.msg_id;
+          const cell = Jupyter.notebook.get_msg_cell( msg_id );
+            
+          if ( cell.react_output && cell.react_output[ commTarget ] ) {
+            const component = React.createElement( Component,  { ...componentParams, comm, comm_msg: msg } );
+            ReactDom.render( component, cell.react_output[ commTarget ].subarea );
+          }
+        }
+      });
     };
 
     /**
@@ -25,14 +31,23 @@ function init( Jupyter, events, commTarget, componentParams ) {
      * add react dom area for components to render themselves into 
      * @param {object} notebook cell
      */
-    // TODO need to handle clear out output calls
     const handle_cell = ( cell ) => {
       if ( cell.cell_type === 'code' ) {
-        if ( !cell.react_dom ) {
-          cell.react_dom = new Area( cell );
-        } else if ( cell.react_dom.clear !== undefined ) {
-          cell.react_dom.clear();
+        if ( !cell.react_output ) {
+          cell.react_output = {};
         }
+
+        if ( !cell.react_output[ commTarget ] ) {
+          cell.react_output[ commTarget ] = new Output( cell );
+        } else if ( cell.react_output[ commTarget ].clear !== undefined ) {
+          cell.react_output[ commTarget ].clear();
+        }
+
+        // override clear_output so react areas get cleared too
+        cell.clear_output = () => {
+          Object.getPrototypeOf ( cell ).clear_output.call( cell )
+          cell.react_output[ commTarget ].clear();
+        };
       }
     };
 
@@ -57,16 +72,10 @@ function init( Jupyter, events, commTarget, componentParams ) {
     });
 
     events.on( 'delete.Cell', ( event, data ) => {
-      if ( data.cell && data.cell.react_dom ) {
-        data.cell.react_dom.clear();
+      if ( data.cell && data.cell.react_output ) {
+        data.cell.react_output[ commTarget ].clear();
       }
     });
   });
 };
 
-export default {
-  Manager,
-  ReactComponent,
-  Area,
-  init
-};

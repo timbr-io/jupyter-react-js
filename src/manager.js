@@ -1,21 +1,35 @@
-function Manager( kernel, comm ) {
-  this.kernel = kernel;
-  this.comm = comm;
-  this.components = {};
+import React from 'react';
+import Component from './component';
 
-  this.register = function( target, Component ) {
-    const self = this;
-    // new targets...
-    if ( !this.components[ target ] ) {
-      this.components[ target ] = { Component: Component };
-      kernel.comm_manager.register_target( target, ( comm, msg ) => {
-        if ( msg[ 'msg_type' ] === 'comm_open' ) {
-          self.components[ target ][ comm.comm_id ] = self.components[ target ].Component( comm, msg );
-        }
-      });
+const { object, string } = React.PropTypes;
+
+const propTypes = {
+  kernel:          object.isRequired,
+  comm:            object.isRequired,
+  commTarget:      string.isRequired,
+  componentParams: object.isRequired
+};
+
+class Manager extends React.Component {
+
+  constructor( props ) {
+    super( props );
+    this.state = {
+      components: {}
     }
+  }
 
-    // look for comms that need to be re-created (page refresh)
+  componentWillMount() {
+    const { commTarget, kernel } = this.props;
+    kernel.comm_manager.register_target( commTarget, ( comm, msg ) => {
+      if ( msg[ 'msg_type' ] === 'comm_open' ) {
+        this.setState( { components: { ...this.state.components, [ comm.comm_id ]: { comm, msg } } } );
+        //self.components[ target ][ comm.comm_id ] = self.components[ target ].Component( comm, msg );
+      }
+    });
+  }
+
+  /*  // look for comms that need to be re-created (page refresh)
     this.kernel.comm_info( target, function( info ) { 
       const comms = Object.keys( info[ 'content' ][ 'comms' ] );
       const md = Jupyter.notebook.metadata;
@@ -40,21 +54,32 @@ function Manager( kernel, comm ) {
         });
       }
     })
-  };
+  };*/
 
-  this._getCell = function( index ) {
+  _getCell = function( index ) {
     return Jupyter.notebook.get_cells()[ parseInt(index) ];
   }
 
-  this._createComm = function( kernel, target, comm_id ) {
+  _createComm = function( kernel, target, comm_id ) {
     const newComm = new this.comm.Comm( target, comm_id );
     kernel.comm_manager.register_comm( newComm );
     return newComm;
   }
 
-  return this;
+  _buildComponents() {
+    const { components } = this.state;
+    return Object.keys( components ).map( commId => {
+      return <Component key={ commId } { ...components[ commId ] } { ...this.props.componentParams } />
+    })
+  }
+
+  render() {
+    return (
+      <div>{ this._buildComponents() }</div>
+    );
+  }
 };
 
-export default { 
-  ComponentManager: Manager 
-};
+Manager.propTypes = propTypes;
+
+export default Manager;

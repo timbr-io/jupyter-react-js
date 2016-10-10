@@ -1,4 +1,4 @@
-define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_4__, __WEBPACK_EXTERNAL_MODULE_5__) { return /******/ (function(modules) { // webpackBootstrap
+define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_EXTERNAL_MODULE_2__) { return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 
@@ -49,26 +49,42 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_4__, __WEBPACK_
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	var Area = __webpack_require__(1);
-	var Manager = __webpack_require__(2);
-	var ReactComponent = __webpack_require__(3);
+
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+	var _react = __webpack_require__(1);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	var _reactDom = __webpack_require__(2);
+
+	var _reactDom2 = _interopRequireDefault(_reactDom);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var Area = __webpack_require__(3);
+	var Component = __webpack_require__(4);
 
 	function init(Jupyter, events, commTarget, componentParams) {
 
-	  requirejs(["services/kernels/comm"], function (Comm) {
+	  requirejs(["services/kernels/comm"], function (comm) {
 	    /**
 	     * handle_kernel 
-	     * creates an instance of a "Manager" used to listen for new comms and create new components
+	     * registers comm targets with the kernel comm_manager
+	     * when new comms are open, renders a Parent component that takes over rendering of actual components
 	     */
 	    var handle_kernel = function handle_kernel(Jupyter, kernel) {
-	      if (kernel.comm_manager && kernel.component_manager === undefined) {
-	        kernel.component_manager = new Manager.ComponentManager(kernel, Comm);
-	      }
+	      kernel.comm_manager.register_target(commTarget, function (comm, msg) {
+	        if (msg['msg_type'] === 'comm_open') {
+	          var msg_id = msg.parent_header.msg_id;
+	          var cell = Jupyter.notebook.get_msg_cell(msg_id);
 
-	      if (kernel.component_manager) {
-	        var Component = ReactComponent(componentParams);
-	        kernel.component_manager.register(commTarget, Component);
-	      }
+	          if (cell.react_dom && cell.react_dom[commTarget]) {
+	            var component = _react2.default.createElement(Component, _extends({}, componentParams, { comm: comm, comm_msg: msg }));
+	            _reactDom2.default.render(component, cell.react_dom[commTarget].subarea);
+	          }
+	        }
+	      });
 	    };
 
 	    /**
@@ -76,13 +92,16 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_4__, __WEBPACK_
 	     * add react dom area for components to render themselves into 
 	     * @param {object} notebook cell
 	     */
-	    // TODO need to handle clear out output calls
 	    var handle_cell = function handle_cell(cell) {
 	      if (cell.cell_type === 'code') {
 	        if (!cell.react_dom) {
-	          cell.react_dom = new Area(cell);
-	        } else if (cell.react_dom.clear !== undefined) {
-	          cell.react_dom.clear();
+	          cell.react_dom = {};
+	        }
+
+	        if (!cell.react_dom[commTarget]) {
+	          cell.react_dom[commTarget] = new Area(cell);
+	        } else if (cell.react_dom[commTarget].clear !== undefined) {
+	          cell.react_dom[commTarget].clear();
 	        }
 	      }
 	    };
@@ -109,22 +128,33 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_4__, __WEBPACK_
 
 	    events.on('delete.Cell', function (event, data) {
 	      if (data.cell && data.cell.react_dom) {
-	        data.cell.react_dom.clear();
+	        data.cell.react_dom[commTarget].clear();
 	      }
 	    });
 	  });
 	};
 
 	exports.default = {
-	  Manager: Manager,
-	  ReactComponent: ReactComponent,
-	  Area: Area,
+	  //Manager,
+	  //Area,
 	  init: init
 	};
 	module.exports = exports['default'];
 
 /***/ },
 /* 1 */
+/***/ function(module, exports) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_1__;
+
+/***/ },
+/* 2 */
+/***/ function(module, exports) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_2__;
+
+/***/ },
+/* 3 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -176,128 +206,93 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_4__, __WEBPACK_
 	module.exports = exports['default'];
 
 /***/ },
-/* 2 */
-/***/ function(module, exports) {
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	function Manager(kernel, comm) {
-	  this.kernel = kernel;
-	  this.comm = comm;
-	  this.components = {};
+	exports.default = undefined;
 
-	  this.register = function (target, Component) {
-	    var self = this;
-	    // new targets...
-	    if (!this.components[target]) {
-	      this.components[target] = { Component: Component };
-	      kernel.comm_manager.register_target(target, function (comm, msg) {
-	        if (msg['msg_type'] === 'comm_open') {
-	          self.components[target][comm.comm_id] = self.components[target].Component(comm, msg);
-	        }
-	      });
-	    }
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-	    // look for comms that need to be re-created (page refresh)
-	    this.kernel.comm_info(target, function (info) {
-	      var comms = Object.keys(info['content']['comms']);
-	      var md = Jupyter.notebook.metadata;
-	      // TODO
-	      // pretty nasty right here, confusing to follow
-	      if (comms.length) {
-	        comms.forEach(function (comm_id) {
-	          if (md.react_comms && md.react_comms[comm_id]) {
-	            var cell = self._getCell(md.react_comms[comm_id]);
-	            if (cell) {
-	              var module = comm_id.split('.').slice(-1)[0];
-	              var newComm = self._createComm(self.kernel, target, comm_id);
-	              var newComp = self.components[target].Component(newComm, { content: { data: { module: module } } }, cell);
-	              newComp.render();
-	              self.components[target][newComm.comm_id] = newComp;
-	            }
-	          }
-	        });
-	      }
-	    });
-	  };
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	  this._getCell = function (index) {
-	    return Jupyter.notebook.get_cells()[parseInt(index)];
-	  };
+	var _class; // Base component that handles comm messages and renders components to notebook cell
 
-	  this._createComm = function (kernel, target, comm_id) {
-	    var newComm = new this.comm.Comm(target, comm_id);
-	    kernel.comm_manager.register_comm(newComm);
-	    return newComm;
-	  };
 
-	  return this;
-	};
-
-	exports.default = {
-	  ComponentManager: Manager
-	};
-	module.exports = exports['default'];
-
-/***/ },
-/* 3 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var _react = __webpack_require__(4);
+	var _react = __webpack_require__(1);
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _reactDom = __webpack_require__(5);
+	var _autobindDecorator = __webpack_require__(5);
 
-	var _reactDom2 = _interopRequireDefault(_reactDom);
+	var _autobindDecorator2 = _interopRequireDefault(_autobindDecorator);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	// Base component that handles comm messages and renders components to notebook cell
-	module.exports = function Component(options) {
-	  return function (comm, props, cell) {
-	    var _this = this;
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	    this.cell = cell;
-	    this.comm = comm;
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-	    /**
-	     * handleMsg 
-	     * Handle all messages over this comm
-	     */
-	    this.handleMsg = function (msg) {
-	      var data = msg.content.data;
-	      switch (data.method) {
-	        case "update":
-	          if (options.on_update) {
-	            return options.on_update(props.content.data.module, data.props, msg.content.comm_id);
-	          }
-	          // else re-render
-	          _this.render(msg, data.props);
-	          break;
-	        case "display":
-	          // save comm id and cell id to notebook.metadata
-	          if (options.save) {
-	            _this._save(msg, function () {
-	              _this.render(msg, data.props);
-	            });
-	          } else {
-	            _this.render(msg, data.props);
-	          }
-	          break;
-	      }
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var Component = (0, _autobindDecorator2.default)(_class = function (_React$Component) {
+	  _inherits(Component, _React$Component);
+
+	  function Component(props) {
+	    _classCallCheck(this, Component);
+
+	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Component).call(this, props));
+
+	    _this.state = {
+	      renderProps: null,
+	      components: props.components,
+	      comm: props.comm,
+	      comm_msg: props.comm_msg
 	    };
 
-	    /**
-	     * _save
-	     * save cell index to notebook metadata as a string
-	     */
-	    this._save = function (msg, done) {
+	    _this.state.comm.on_msg(_this.handleMsg);
+	    return _this;
+	  }
+
+	  /**
+	   * handleMsg 
+	   * Handle all messages over this comm
+	   */
+
+
+	  _createClass(Component, [{
+	    key: 'handleMsg',
+	    value: function handleMsg(msg) {
+	      var _state = this.state;
+	      var comm_msg = _state.comm_msg;
+	      var params = _state.params;
+	      var _msg$content$data = msg.content.data;
+	      var method = _msg$content$data.method;
+	      var _msg$content$data$pro = _msg$content$data.props;
+	      var props = _msg$content$data$pro === undefined ? {} : _msg$content$data$pro;
+
+	      if (method === "update") {
+	        if (this.props.on_update) {
+	          return options.on_update(comm_msg.content.data.module, props, msg.content.comm_id);
+	        }
+	        this.setState({ renderProps: props });
+	      } else if (method === "display") {
+	        this.setState({ renderProps: props });
+	        /*if ( params.save ) {
+	          this._save( msg, () => {
+	            this.setState( { renderProps: props } );
+	          } );
+	        } else {
+	        }*/
+	      }
+	    }
+	  }, {
+	    key: '_save',
+	    value: function _save(msg, done) {
 	      var cell = this._getMsgCell(msg);
 	      var md = Jupyter.notebook.metadata;
 	      if (cell) {
@@ -307,115 +302,140 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_4__, __WEBPACK_
 	        md.react_comms[comm.comm_id] = this._getCellIndex(cell.cell_id) + '';
 	      }
 	      done();
-	    };
-
-	    /**
-	     * render
-	     * appends the components to the dom
-	     *
-	     */
-	    this.render = function (msg, _newProps) {
-	      var newProps = _newProps || props.content.data.props || props.content.data;
-	      newProps.cell = this.cell || this._getMsgCell(msg);
-	      newProps.comm = comm;
-
-	      var display = void 0;
-	      var domId = props.content.data.domId;
-
-	      if (domId) {
-	        display = document.getElementById(domId);
-	      } else {
-	        display = this._outputAreaElement(msg || {});
-	      }
-
-	      var element = this._createMarkup(options.components[props.content.data.module], newProps);
-	      this._renderToDom(element, display);
-	    };
-
-	    this._renderToDom = function (element, display) {
-	      _reactDom2.default.render(element, display);
-	    };
-
-	    /**
-	     * _getCellIndex
-	     * gets the index of a cell_id in the notebook json 
-	     */
-	    this._getCellIndex = function (cell_id) {
-	      var idx = void 0;
-	      Jupyter.notebook.get_cells().forEach(function (c, i) {
-	        if (c.cell_id === cell_id) {
-	          idx = i;
-	        }
-	      });
-	      return idx;
-	    };
-
-	    /**
-	     * _getMsgCell
-	     * gets the components cell or 
-	     *
-	     */
-	    this._getMsgCell = function (msg) {
-	      if (this.cell) return this.cell;
-	      var msg_id = msg.parent_header.msg_id;
-	      this.cell = Jupyter.notebook.get_msg_cell(msg_id);
-	      this._overrideClearOutput();
-	      return this.cell;
-	    };
-
-	    /**
-	     * _createMarkup
-	     * Create React Elements from components and props 
-	     *
-	     */
-	    this._createMarkup = function (component, cProps) {
-	      return _react2.default.createElement(component, cProps);
-	    };
-
-	    /**
-	     * _outputAreaElement
-	     * Get the DOM Element to render to
-	     *
-	     */
-	    this._outputAreaElement = function (msg) {
-	      var cell = this._getMsgCell(msg);
-	      return cell.react_dom.subarea;
-	    };
-
-	    /**
-	     * _overrideClearOutput
-	     * Save the original clear_output method and call react_dom.clear()
-	     * ensures react components are cleared out when clear_display is called
-	     */
-	    this._overrideClearOutput = function () {
-	      var _this2 = this;
-
-	      this.cell.clear_output = function () {
-	        Object.getPrototypeOf(_this2.cell).clear_output.call(_this2.cell);
-	        _this2.cell.react_dom.clear();
-	      };
-	    };
-
-	    if (this.cell) {
-	      this._overrideClearOutput();
+	      //React.createElement( params.component[ comm_msg.content.data.module ], { ...renderProps } ) }
 	    }
-	    // register message callback
-	    this.comm.on_msg(this.handleMsg);
-	    return this;
-	  };
-	};
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      var _state2 = this.state;
+	      var renderProps = _state2.renderProps;
+	      var comm_msg = _state2.comm_msg;
+	      var components = _state2.components;
 
-/***/ },
-/* 4 */
-/***/ function(module, exports) {
+	      console.log(renderProps);
+	      return _react2.default.createElement(
+	        'div',
+	        null,
+	        renderProps && comm_msg && _react2.default.createElement(components[comm_msg.content.data.module], _extends({}, renderProps))
+	      );
+	    }
+	  }]);
 
-	module.exports = __WEBPACK_EXTERNAL_MODULE_4__;
+	  return Component;
+	}(_react2.default.Component)) || _class;
+
+	exports.default = Component;
+	;
+	module.exports = exports['default'];
 
 /***/ },
 /* 5 */
 /***/ function(module, exports) {
 
-	module.exports = __WEBPACK_EXTERNAL_MODULE_5__;
+	/**
+	 * @copyright 2015, Andrey Popp <8mayday@gmail.com>
+	 *
+	 * The decorator may be used on classes or methods
+	 * ```
+	 * @autobind
+	 * class FullBound {}
+	 *
+	 * class PartBound {
+	 *   @autobind
+	 *   method () {}
+	 * }
+	 * ```
+	 */
+	'use strict';
+
+	Object.defineProperty(exports, '__esModule', {
+	  value: true
+	});
+	exports['default'] = autobind;
+
+	function autobind() {
+	  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	    args[_key] = arguments[_key];
+	  }
+
+	  if (args.length === 1) {
+	    return boundClass.apply(undefined, args);
+	  } else {
+	    return boundMethod.apply(undefined, args);
+	  }
+	}
+
+	/**
+	 * Use boundMethod to bind all methods on the target.prototype
+	 */
+	function boundClass(target) {
+	  // (Using reflect to get all keys including symbols)
+	  var keys = undefined;
+	  // Use Reflect if exists
+	  if (typeof Reflect !== 'undefined' && typeof Reflect.ownKeys === 'function') {
+	    keys = Reflect.ownKeys(target.prototype);
+	  } else {
+	    keys = Object.getOwnPropertyNames(target.prototype);
+	    // use symbols if support is provided
+	    if (typeof Object.getOwnPropertySymbols === 'function') {
+	      keys = keys.concat(Object.getOwnPropertySymbols(target.prototype));
+	    }
+	  }
+
+	  keys.forEach(function (key) {
+	    // Ignore special case target method
+	    if (key === 'constructor') {
+	      return;
+	    }
+
+	    var descriptor = Object.getOwnPropertyDescriptor(target.prototype, key);
+
+	    // Only methods need binding
+	    if (typeof descriptor.value === 'function') {
+	      Object.defineProperty(target.prototype, key, boundMethod(target, key, descriptor));
+	    }
+	  });
+	  return target;
+	}
+
+	/**
+	 * Return a descriptor removing the value and returning a getter
+	 * The getter will return a .bind version of the function
+	 * and memoize the result against a symbol on the instance
+	 */
+	function boundMethod(target, key, descriptor) {
+	  var fn = descriptor.value;
+
+	  if (typeof fn !== 'function') {
+	    throw new Error('@autobind decorator can only be applied to methods not: ' + typeof fn);
+	  }
+
+	  // In IE11 calling Object.defineProperty has a side-effect of evaluating the
+	  // getter for the property which is being replaced. This causes infinite
+	  // recursion and an "Out of stack space" error.
+	  var definingProperty = false;
+
+	  return {
+	    configurable: true,
+	    get: function get() {
+	      if (definingProperty || this === target.prototype || this.hasOwnProperty(key)) {
+	        return fn;
+	      }
+
+	      var boundFn = fn.bind(this);
+	      definingProperty = true;
+	      Object.defineProperty(this, key, {
+	        value: boundFn,
+	        configurable: true,
+	        writable: true
+	      });
+	      definingProperty = false;
+	      return boundFn;
+	    }
+	  };
+	}
+	module.exports = exports['default'];
+
 
 /***/ }
 /******/ ])});;
