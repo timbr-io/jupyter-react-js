@@ -19,9 +19,35 @@ npm install jupyter-react-js
 
 ## Usage
 
-Jupyter Notebooks are AMD based and we rely on `RequireJS` being present within the `load\_ipython\_extension` method in order to call the `init()` method on the JupyterReact. This method initializing output areas for react components, create a component manager (for binding to new comms), and ensures the ReactJS is loaded into the DOM. 
+The usage of Jupyter-React-JS is for building Jupyter Notebook Extensions which typically will require both Python and JS to be written. The structure of such extensions involves creating a python module that can be installed via pip, conda, or setuptools, and packaging a javascript based "nbextension" with that code. Below is a rough example of how a python module (using [Jupyter-React](https://github.com/timbr-io/jupyter-react)) can be used to render a javascript component built with Jupyter-React-js.
 
+### In Python 
+
+```python
+# Create a custom module in python 
+
+from jupyter_react import Component 
+
+class MyThing(Component):
+    module = 'a_js_module_name'
+
+    def __init__(self, **kwargs):
+        super(MyThing, self).__init__(target_name='some.custom.name', **kwargs)
+        self.on_msg(self._handle_msg)
+
+    def _handle_msg(self, msg):
+        print msg   
 ```
+
+The above module creates python class that extends from Jupyter-React's Component class. 
+
+## In Javascript
+
+When the above module is invoked in a notebook cell and "displayed" (see below) a Jupyter Comm is opened to the notebooks front-end js. If a matching comm target has been registered on the front-end a "comm_open" handler is triggered, resulting in the rendering of the corresponding component the nbextension in JS.
+
+Jupyter Notebooks are AMD based and relies on `RequireJS` being present within the `load\_ipython\_extension` method in order to call the `init()` method exported by Jupyter-React-JS. This method initializes output areas for react components, and registers target_names for new comms, setting up a handlers that renders the correct JS component.  
+
+```javascript
 var JupyterReact = require('jupyter-react-js');
 
 // an object of react components available in your project. 
@@ -31,20 +57,21 @@ function load_ipython_extension () {
   requirejs([
       "base/js/namespace",
       "base/js/events",
-  ], function( Jupyter, events, React, ReactDom ) {
-      JupyterReact.init( Jupyter, events, "my.comm.target_name", { components } );
+  ], function( Jupyter, events ) {
+      JupyterReact.init( Jupyter, events, "some.custom.name", { components } );
   });
 }
 ```
 
-## Documentation 
 
-### Init
+## In a Notebook
 
-### Area 
+```python
+# In Jupyter / IPython instantiate the class and display it
 
-### Component 
-#### Messages Types
+from mything import MyThing
+from IPython.display import display
 
-### Manager
-
+mything = MyThing(props={})
+display(mything)
+```
