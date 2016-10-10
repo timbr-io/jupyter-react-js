@@ -9,7 +9,11 @@ A lot of inspiration for this repo comes from ipywidgets and its front-end javas
 
 ### Jupyter Comms
 
-"Comms" are the primary means by which the Python (back-end) and JS (front-end) communicate. Each component is expected to receive a comm from the back-end when its initialized and can then listen and send messages back and forth on that comm. 
+"Comms" are the primary means by which the Python (back-end) and JS (front-end) communicate. Each component is expected to receive a comm from the back-end when its initialized and can then listen and send messages back and forth on that comm.
+
+## Example 
+
+An example implementation is hosted [here](https://github.com/timbr-io/jupyter-react-example)
 
 ## Installation
 
@@ -75,3 +79,4 @@ from IPython.display import display
 mything = MyThing(props={})
 display(mything)
 ```
+
