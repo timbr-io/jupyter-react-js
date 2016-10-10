@@ -52,8 +52,6 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-	exports.default = init;
-
 	var _react = __webpack_require__(1);
 
 	var _react2 = _interopRequireDefault(_react);
@@ -66,8 +64,6 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 
 	var Output = __webpack_require__(3);
 	var Component = __webpack_require__(4);
-
-	getCell;
 
 	function init(Jupyter, events, commTarget, componentParams) {
 
@@ -166,6 +162,8 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 	    });
 	  });
 	};
+
+	exports.default = { init: init };
 	module.exports = exports['default'];
 
 /***/ },
@@ -269,7 +267,7 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 	var propTypes = {
 	  comm: object.isRequired,
 	  comm_msg: object.isRequired,
-	  components: objet.isRequired,
+	  components: object.isRequired,
 	  save: bool
 	};
 
@@ -306,7 +304,6 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 
 	      var _state = this.state;
 	      var comm_msg = _state.comm_msg;
-	      var params = _state.params;
 	      var save = _state.save;
 	      var _msg$content$data = msg.content.data;
 	      var method = _msg$content$data.method;
@@ -315,16 +312,17 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 
 	      if (method === "update") {
 	        if (this.props.on_update) {
-	          return options.on_update(comm_msg.content.data.module, props, msg.content.comm_id);
+	          return this.props.on_update(comm_msg.content.data.module, props, msg.content.comm_id);
 	        }
-	        this.setState({ renderProps: props });
+	        this.setState({ renderProps: _extends({}, props, comm_msg.content.data) });
 	      } else if (method === "display") {
+	        //console.log( msg, comm_msg )
 	        if (save) {
 	          this._save(msg, function () {
-	            _this2.setState({ renderProps: props });
+	            _this2.setState({ renderProps: _extends({}, props, comm_msg.content.data) });
 	          });
 	        } else {
-	          this.setState({ renderProps: props });
+	          this.setState({ renderProps: _extends({}, props, comm_msg.content.data) });
 	        }
 	      }
 	    }
@@ -351,13 +349,14 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 	      var _state2 = this.state;
 	      var renderProps = _state2.renderProps;
 	      var comm_msg = _state2.comm_msg;
+	      var comm = _state2.comm;
 	      var components = _state2.components;
 
 
 	      return _react2.default.createElement(
 	        'div',
 	        null,
-	        renderProps && comm_msg && _react2.default.createElement(components[comm_msg.content.data.module], _extends({}, renderProps))
+	        renderProps && comm_msg && _react2.default.createElement(components[comm_msg.content.data.module], _extends({ comm: comm }, renderProps))
 	      );
 	    }
 	  }]);

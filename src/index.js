@@ -4,9 +4,7 @@ const Component = require('./component');
 import React from 'react';
 import ReactDom from 'react-dom';
 
-getCell
-
-export default function init( Jupyter, events, commTarget, componentParams ) {
+function init( Jupyter, events, commTarget, componentParams ) {
 
   requirejs([ "services/kernels/comm" ], function( Comm ) {
     /**
@@ -104,3 +102,5 @@ export default function init( Jupyter, events, commTarget, componentParams ) {
   });
 };
 
+
+export default { init };

@@ -7,7 +7,7 @@ const { bool, object } = React.PropTypes;
 const propTypes = {
   comm:       object.isRequired,
   comm_msg:   object.isRequired,
-  components: objet.isRequired,
+  components: object.isRequired,
   save:       bool
 };
 
@@ -32,20 +32,21 @@ class Component extends React.Component {
    * Handle all messages over this comm
    */
   handleMsg( msg ) {
-    const { comm_msg, params, save } = this.state;
+    const { comm_msg, save } = this.state;
     const { method, props = {} } = msg.content.data;
     if ( method === "update" ) {
       if ( this.props.on_update ) {
-        return options.on_update( comm_msg.content.data.module, props, msg.content.comm_id);
+        return this.props.on_update( comm_msg.content.data.module, props, msg.content.comm_id);
       }
-      this.setState( { renderProps: props } );
+      this.setState( { renderProps: { ...props, ...comm_msg.content.data } } );
     } else if ( method === "display" ) {
+      //console.log( msg, comm_msg )
       if ( save ) {
         this._save( msg, () => {
-          this.setState( { renderProps: props } );
+          this.setState( { renderProps: { ...props, ...comm_msg.content.data } } );
         } );
       } else {
-        this.setState( { renderProps: props } );
+        this.setState( { renderProps: { ...props, ...comm_msg.content.data } } );
       }
     }
   }
@@ -69,11 +70,12 @@ class Component extends React.Component {
     const { 
       renderProps, 
       comm_msg, 
+      comm,
       components } = this.state;
 
     return ( 
       <div>
-        { renderProps && comm_msg && React.createElement( components[ comm_msg.content.data.module ], { ...renderProps } ) }
+        { renderProps && comm_msg && React.createElement( components[ comm_msg.content.data.module ], { comm, ...renderProps } ) }
       </div>
     );
   };
