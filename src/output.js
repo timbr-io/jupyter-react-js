@@ -1,14 +1,10 @@
 /**
- * Area 
+ * Output
  * defines an output area for a code cell where react components will render themselves into
  * 
  * @param {object} cell - a notebook cell to append react component areas to.
- *
- * TODO 
- * needs to bind to clear_display calls
- * could also just not do this, and append new divs to output subareas so that clear_output is auto handled...
  */
-function Area( cell ) {
+function Output( cell ) {
 
     this.clear = () => {
       this.subarea.innerHTML = '';      
@@ -38,4 +34,4 @@ function Area( cell ) {
 };
 
 
-export default Area;
+export default Output;
