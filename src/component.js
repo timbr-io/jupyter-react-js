@@ -17,14 +17,10 @@ class Component extends React.Component {
   constructor( props ) {
     super( props );
     this.state = {
-      renderProps: null,
-      components: props.components,
-      comm: props.comm,
-      comm_msg: props.comm_msg,
-      save: props.save
+      renderProps: null
     };
       
-    this.state.comm.on_msg( this.handleMsg );
+    props.comm.on_msg( this.handleMsg );
   }
 
   /**
@@ -32,7 +28,7 @@ class Component extends React.Component {
    * Handle all messages over this comm
    */
   handleMsg( msg ) {
-    const { comm_msg, save } = this.state;
+    const { comm_msg, save } = this.props;
     const { method, props = {} } = msg.content.data;
     if ( method === "update" ) {
       if ( this.props.on_update ) {
@@ -68,10 +64,13 @@ class Component extends React.Component {
 
   render() {
     const { 
-      renderProps, 
-      comm_msg, 
-      comm,
-      components } = this.state;
+      state: { renderProps },
+      props: { 
+        comm_msg,
+        comm,
+        components 
+      } 
+    } = this;
 
     return ( 
       <div>

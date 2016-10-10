@@ -65,6 +65,22 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 	var Output = __webpack_require__(3);
 	var Component = __webpack_require__(4);
 
+	function createOutputArea(cell, target) {
+	  if (!cell.react_output) {
+	    cell.react_output = {};
+	  }
+
+	  if (!cell.react_output[target]) {
+	    cell.react_output[target] = new Output(cell);
+	  }
+
+	  // override clear_output so react areas get cleared too
+	  cell.clear_output = function () {
+	    Object.getPrototypeOf(cell).clear_output.call(cell);
+	    cell.react_output[target].clear();
+	  };
+	}
+
 	function init(Jupyter, events, commTarget, componentParams) {
 
 	  requirejs(["services/kernels/comm"], function (Comm) {
@@ -79,6 +95,7 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 	        if (msg['msg_type'] === 'comm_open') {
 	          var msg_id = msg.parent_header.msg_id;
 	          var cell = Jupyter.notebook.get_msg_cell(msg_id);
+	          createOutputArea(cell, commTarget);
 
 	          if (cell.react_output && cell.react_output[commTarget]) {
 	            var component = _react2.default.createElement(Component, _extends({}, componentParams, { comm: comm, comm_msg: msg }));
@@ -101,6 +118,7 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 	              var module = id.split('.').slice(-1)[0];
 	              var newComm = new Comm.Comm(commTarget, id);
 	              kernel.comm_manager.register_comm(newComm);
+	              createOutputArea(cell, commTarget);
 
 	              var component = _react2.default.createElement(Component, _extends({}, componentParams, { comm: newComm, comm_msg: { content: { data: { module: module } } } }));
 	              _reactDom2.default.render(component, cell.react_output[commTarget].subarea);
@@ -110,49 +128,12 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 	      });
 	    };
 
-	    /**
-	     * handle_cell 
-	     * add react dom area for components to render themselves into 
-	     * @param {object} notebook cell
-	     */
-	    var handle_cell = function handle_cell(cell) {
-	      if (cell.cell_type === 'code') {
-	        if (!cell.react_output) {
-	          cell.react_output = {};
-	        }
-
-	        if (!cell.react_output[commTarget]) {
-	          cell.react_output[commTarget] = new Output(cell);
-	        } else if (cell.react_output[commTarget].clear !== undefined) {
-	          cell.react_output[commTarget].clear();
-	        }
-
-	        // override clear_output so react areas get cleared too
-	        cell.clear_output = function () {
-	          Object.getPrototypeOf(cell).clear_output.call(cell);
-	          cell.react_output[commTarget].clear();
-	        };
-	      }
-	    };
-
 	    // On new kernel session create new comm managers
 	    if (Jupyter.notebook && Jupyter.notebook.kernel) {
 	      handle_kernel(Jupyter, Jupyter.notebook.kernel);
 	    }
 	    events.on('kernel_created.Kernel kernel_created.Session', function (event, data) {
 	      handle_kernel(Jupyter, data.kernel);
-	    });
-
-	    // Create react component areas in cells
-	    // Each cell in the notebook will have an area 
-	    // that a component will render itself into
-	    var cells = Jupyter.notebook.get_cells();
-	    cells.forEach(function (cell) {
-	      handle_cell(cell);
-	    });
-
-	    events.on('create.Cell', function (event, data) {
-	      handle_cell(data.cell);
 	    });
 
 	    events.on('delete.Cell', function (event, data) {
@@ -280,14 +261,10 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Component).call(this, props));
 
 	    _this.state = {
-	      renderProps: null,
-	      components: props.components,
-	      comm: props.comm,
-	      comm_msg: props.comm_msg,
-	      save: props.save
+	      renderProps: null
 	    };
 
-	    _this.state.comm.on_msg(_this.handleMsg);
+	    props.comm.on_msg(_this.handleMsg);
 	    return _this;
 	  }
 
@@ -302,9 +279,9 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 	    value: function handleMsg(msg) {
 	      var _this2 = this;
 
-	      var _state = this.state;
-	      var comm_msg = _state.comm_msg;
-	      var save = _state.save;
+	      var _props = this.props;
+	      var comm_msg = _props.comm_msg;
+	      var save = _props.save;
 	      var _msg$content$data = msg.content.data;
 	      var method = _msg$content$data.method;
 	      var _msg$content$data$pro = _msg$content$data.props;
@@ -346,11 +323,11 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      var _state2 = this.state;
-	      var renderProps = _state2.renderProps;
-	      var comm_msg = _state2.comm_msg;
-	      var comm = _state2.comm;
-	      var components = _state2.components;
+	      var renderProps = this.state.renderProps;
+	      var _props2 = this.props;
+	      var comm_msg = _props2.comm_msg;
+	      var comm = _props2.comm;
+	      var components = _props2.components;
 
 
 	      return _react2.default.createElement(
