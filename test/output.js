@@ -1,6 +1,6 @@
 const test = require( 'tape' );
 const sinon = require( 'sinon' );
-const Area = require( '../src/area' );
+const Output = require( '../src/output' );
 
 global.document = { 
   createElement: sinon.stub().returns( {
@@ -18,10 +18,10 @@ const cell = {
 }
 
 test('create a new area', function (t) {
-    const area = new Area( cell );
+    const output = new Output( cell );
     
-    t.ok( area.area, 'area gets created' );
-    t.ok( area.subarea, 'subarea gets created' );
+    t.ok( output.area, 'area gets created' );
+    t.ok( output.subarea, 'subarea gets created' );
     t.ok( cell.input.after.called , 'cell.input.after gets called' );
     t.end();
 });
