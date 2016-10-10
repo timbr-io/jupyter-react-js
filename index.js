@@ -52,6 +52,8 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
+	exports.default = init;
+
 	var _react = __webpack_require__(1);
 
 	var _react2 = _interopRequireDefault(_react);
@@ -62,27 +64,52 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var Area = __webpack_require__(3);
+	var Output = __webpack_require__(3);
 	var Component = __webpack_require__(4);
+
+	getCell;
 
 	function init(Jupyter, events, commTarget, componentParams) {
 
-	  requirejs(["services/kernels/comm"], function (comm) {
+	  requirejs(["services/kernels/comm"], function (Comm) {
 	    /**
 	     * handle_kernel 
 	     * registers comm targets with the kernel comm_manager
 	     * when new comms are open, renders a Parent component that takes over rendering of actual components
 	     */
 	    var handle_kernel = function handle_kernel(Jupyter, kernel) {
+	      // register the target comm / listens for new comms 
 	      kernel.comm_manager.register_target(commTarget, function (comm, msg) {
 	        if (msg['msg_type'] === 'comm_open') {
 	          var msg_id = msg.parent_header.msg_id;
 	          var cell = Jupyter.notebook.get_msg_cell(msg_id);
 
-	          if (cell.react_dom && cell.react_dom[commTarget]) {
+	          if (cell.react_output && cell.react_output[commTarget]) {
 	            var component = _react2.default.createElement(Component, _extends({}, componentParams, { comm: comm, comm_msg: msg }));
-	            _reactDom2.default.render(component, cell.react_dom[commTarget].subarea);
+	            _reactDom2.default.render(component, cell.react_output[commTarget].subarea);
 	          }
+	        }
+	      });
+
+	      // find any open comms and render components 
+	      kernel.comm_info(commTarget, function (commInfo) {
+	        var comms = Object.keys(commInfo['content']['comms']);
+	        var md = Jupyter.notebook.metadata;
+
+	        if (comms.length && md.react_comms) {
+	          comms.filter(function (c) {
+	            return md.react_comms[c.comm_id] && c;
+	          }).forEach(function (id) {
+	            var cell = Jupyter.notebook.get_cells()[parseInt(md.react_comms[id])];
+	            if (cell) {
+	              var module = id.split('.').slice(-1)[0];
+	              var newComm = new Comm.Comm(commTarget, id);
+	              kernel.comm_manager.register_comm(newComm);
+
+	              var component = _react2.default.createElement(Component, _extends({}, componentParams, { comm: newComm, comm_msg: { content: { data: { module: module } } } }));
+	              _reactDom2.default.render(component, cell.react_output[commTarget].subarea);
+	            }
+	          });
 	        }
 	      });
 	    };
@@ -94,15 +121,21 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 	     */
 	    var handle_cell = function handle_cell(cell) {
 	      if (cell.cell_type === 'code') {
-	        if (!cell.react_dom) {
-	          cell.react_dom = {};
+	        if (!cell.react_output) {
+	          cell.react_output = {};
 	        }
 
-	        if (!cell.react_dom[commTarget]) {
-	          cell.react_dom[commTarget] = new Area(cell);
-	        } else if (cell.react_dom[commTarget].clear !== undefined) {
-	          cell.react_dom[commTarget].clear();
+	        if (!cell.react_output[commTarget]) {
+	          cell.react_output[commTarget] = new Output(cell);
+	        } else if (cell.react_output[commTarget].clear !== undefined) {
+	          cell.react_output[commTarget].clear();
 	        }
+
+	        // override clear_output so react areas get cleared too
+	        cell.clear_output = function () {
+	          Object.getPrototypeOf(cell).clear_output.call(cell);
+	          cell.react_output[commTarget].clear();
+	        };
 	      }
 	    };
 
@@ -127,17 +160,11 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 	    });
 
 	    events.on('delete.Cell', function (event, data) {
-	      if (data.cell && data.cell.react_dom) {
-	        data.cell.react_dom[commTarget].clear();
+	      if (data.cell && data.cell.react_output) {
+	        data.cell.react_output[commTarget].clear();
 	      }
 	    });
 	  });
-	};
-
-	exports.default = {
-	  //Manager,
-	  //Area,
-	  init: init
 	};
 	module.exports = exports['default'];
 
@@ -163,16 +190,12 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 	  value: true
 	});
 	/**
-	 * Area 
+	 * Output
 	 * defines an output area for a code cell where react components will render themselves into
 	 * 
 	 * @param {object} cell - a notebook cell to append react component areas to.
-	 *
-	 * TODO 
-	 * needs to bind to clear_display calls
-	 * could also just not do this, and append new divs to output subareas so that clear_output is auto handled...
 	 */
-	function Area(cell) {
+	function Output(cell) {
 	  var _this = this;
 
 	  this.clear = function () {
@@ -202,7 +225,7 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 	  return this;
 	};
 
-	exports.default = Area;
+	exports.default = Output;
 	module.exports = exports['default'];
 
 /***/ },
@@ -214,7 +237,6 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.default = undefined;
 
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
@@ -239,6 +261,18 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+	var _React$PropTypes = _react2.default.PropTypes;
+	var bool = _React$PropTypes.bool;
+	var object = _React$PropTypes.object;
+
+
+	var propTypes = {
+	  comm: object.isRequired,
+	  comm_msg: object.isRequired,
+	  components: objet.isRequired,
+	  save: bool
+	};
+
 	var Component = (0, _autobindDecorator2.default)(_class = function (_React$Component) {
 	  _inherits(Component, _React$Component);
 
@@ -251,7 +285,8 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 	      renderProps: null,
 	      components: props.components,
 	      comm: props.comm,
-	      comm_msg: props.comm_msg
+	      comm_msg: props.comm_msg,
+	      save: props.save
 	    };
 
 	    _this.state.comm.on_msg(_this.handleMsg);
@@ -267,9 +302,12 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 	  _createClass(Component, [{
 	    key: 'handleMsg',
 	    value: function handleMsg(msg) {
+	      var _this2 = this;
+
 	      var _state = this.state;
 	      var comm_msg = _state.comm_msg;
 	      var params = _state.params;
+	      var save = _state.save;
 	      var _msg$content$data = msg.content.data;
 	      var method = _msg$content$data.method;
 	      var _msg$content$data$pro = _msg$content$data.props;
@@ -281,15 +319,19 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 	        }
 	        this.setState({ renderProps: props });
 	      } else if (method === "display") {
-	        this.setState({ renderProps: props });
-	        /*if ( params.save ) {
-	          this._save( msg, () => {
-	            this.setState( { renderProps: props } );
-	          } );
+	        if (save) {
+	          this._save(msg, function () {
+	            _this2.setState({ renderProps: props });
+	          });
 	        } else {
-	        }*/
+	          this.setState({ renderProps: props });
+	        }
 	      }
 	    }
+
+	    // saves the index of the cell to the notebook metadata
+	    // useful for components that want to re-render on page refresh
+
 	  }, {
 	    key: '_save',
 	    value: function _save(msg, done) {
@@ -302,7 +344,6 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 	        md.react_comms[comm.comm_id] = this._getCellIndex(cell.cell_id) + '';
 	      }
 	      done();
-	      //React.createElement( params.component[ comm_msg.content.data.module ], { ...renderProps } ) }
 	    }
 	  }, {
 	    key: 'render',
@@ -312,7 +353,7 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 	      var comm_msg = _state2.comm_msg;
 	      var components = _state2.components;
 
-	      console.log(renderProps);
+
 	      return _react2.default.createElement(
 	        'div',
 	        null,
@@ -324,8 +365,11 @@ define(["react","react-dom"], function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_
 	  return Component;
 	}(_react2.default.Component)) || _class;
 
-	exports.default = Component;
 	;
+
+	Component.propType = propTypes;
+
+	exports.default = Component;
 	module.exports = exports['default'];
 
 /***/ },
