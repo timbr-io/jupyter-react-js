@@ -2,8 +2,17 @@
 import React from 'react';
 import autobind from 'autobind-decorator';
 
+const { bool, object } = React.PropTypes;
+
+const propTypes = {
+  comm:       object.isRequired,
+  comm_msg:   object.isRequired,
+  components: objet.isRequired,
+  save:       bool
+};
+
 @autobind
-export default class Component extends React.Component {
+class Component extends React.Component {
 
   constructor( props ) {
     super( props );
@@ -57,54 +66,20 @@ export default class Component extends React.Component {
 
 
   render() {
-    const { renderProps, comm_msg, components } = this.state;
-    return ( <div>{ renderProps && comm_msg && React.createElement( components[ comm_msg.content.data.module ], { ...renderProps } ) }</div> );
+    const { 
+      renderProps, 
+      comm_msg, 
+      components } = this.state;
+
+    return ( 
+      <div>
+        { renderProps && comm_msg && React.createElement( components[ comm_msg.content.data.module ], { ...renderProps } ) }
+      </div>
+    );
   };
 
-  /**
-   * _getCellIndex
-   * gets the index of a cell_id in the notebook json 
-   */
-  /*this._getCellIndex = function( cell_id ) {
-    let idx;
-    Jupyter.notebook.get_cells().forEach( function( c, i){
-      if ( c.cell_id === cell_id ) {
-        idx = i;
-      }
-    });
-    return idx;
-  };*/
-
-  /**
-   * _getMsgCell
-   * gets the components cell or 
-   *
-   */
-  /*this._getMsgCell =  function( msg ) {
-    if ( this.cell ) return this.cell;
-    const msg_id = msg.parent_header.msg_id;
-    this.cell = Jupyter.notebook.get_msg_cell( msg_id );
-    this._overrideClearOutput();
-    return this.cell;
-  };*/
-
-  /**
-   * _createMarkup
-   * Create React Elements from components and props 
-   *
-   */
-  /*this._createMarkup = function( component, cProps ) {
-    return react.createElement( component, cProps );
-  };*/
-
-  /**
-   * _outputAreaElement
-   * Get the DOM Element to render to
-   *
-   */
-  /*this._outputAreaElement = function( msg ) {
-    const cell = this._getMsgCell( msg );
-    return cell.react_dom.subarea;
-  };*/
-
 };
+
+Component.propType = propTypes;
+
+export default Component;

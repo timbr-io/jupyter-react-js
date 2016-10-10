@@ -4,15 +4,18 @@ const Component = require('./component');
 import React from 'react';
 import ReactDom from 'react-dom';
 
+getCell
+
 export default function init( Jupyter, events, commTarget, componentParams ) {
 
-  requirejs([ "services/kernels/comm" ], function( comm ) {
+  requirejs([ "services/kernels/comm" ], function( Comm ) {
     /**
      * handle_kernel 
      * registers comm targets with the kernel comm_manager
      * when new comms are open, renders a Parent component that takes over rendering of actual components
      */
     const handle_kernel = ( Jupyter, kernel ) => {
+      // register the target comm / listens for new comms 
       kernel.comm_manager.register_target( commTarget, ( comm, msg ) => {
         if ( msg[ 'msg_type' ] === 'comm_open' ) {
           const msg_id = msg.parent_header.msg_id;
@@ -24,6 +27,28 @@ export default function init( Jupyter, events, commTarget, componentParams ) {
           }
         }
       });
+
+      // find any open comms and render components 
+      kernel.comm_info( commTarget, commInfo => {
+        const comms = Object.keys( commInfo[ 'content' ][ 'comms' ] );
+        const md = Jupyter.notebook.metadata;
+
+        if ( comms.length && md.react_comms ) {
+          comms
+            .filter( c => md.react_comms[ c.comm_id ] && c )
+            .forEach( id => {
+              const cell = Jupyter.notebook.get_cells()[ parseInt( md.react_comms[ id ] ) ];
+              if ( cell ) {
+                const module = id.split( '.' ).slice( -1 )[ 0 ];
+                const newComm = new Comm.Comm( commTarget, id );
+                kernel.comm_manager.register_comm( newComm );
+
+                const component = React.createElement( Component,  { ...componentParams, comm: newComm, comm_msg: { content: { data: { module } } } } );
+                ReactDom.render( component, cell.react_output[ commTarget ].subarea );
+              }
+            });
+        }
+    })
     };
 
     /**
