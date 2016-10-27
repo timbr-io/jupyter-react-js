@@ -80,3 +80,13 @@ mything = MyThing(props={})
 display(mything)
 ```
 
+
+## Component Params 
+
+The primary entry point for all jupyter-react-js components is the `JupyterReact.init` method. This method takes 4 params: 
+* JUpyter - The primary Jupyter namespace from requirejs
+* events - jupyter events object
+* target_name - a unique target name for creating jupyter "comms". The target helps direct comm messages via the jupyter kernel's comm_manager. 
+* componentParams - an object containing optional params that will be passed to Jupyter-React-Js components. The 'components' key is required and are the actual react components renderable by the comms. Other valid params include:
+    * save: whether or not the notebook should remember the component after page refreshes. Defaults to false.
+    * element: a DOM element the component should render to. 

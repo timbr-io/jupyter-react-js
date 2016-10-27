@@ -34,11 +34,14 @@ function init( Jupyter, events, commTarget, componentParams ) {
         if ( msg[ 'msg_type' ] === 'comm_open' ) {
           const msg_id = msg.parent_header.msg_id;
           const cell = Jupyter.notebook.get_msg_cell( msg_id );
-          createOutputArea( cell, commTarget );
-            
-          if ( cell.react_output && cell.react_output[ commTarget ] ) {
-            const component = React.createElement( Component,  { ...componentParams, comm, comm_msg: msg } );
-            ReactDom.render( component, cell.react_output[ commTarget ].subarea );
+          const component = React.createElement( Component,  { ...componentParams, comm, comm_msg: msg } );
+          if ( !componentParams.element ) {
+            createOutputArea( cell, commTarget );
+            if ( cell.react_output && cell.react_output[ commTarget ] ) {
+              ReactDom.render( component, cell.react_output[ commTarget ].subarea );
+            }
+          } else {
+            ReactDom.render( component, componentParams.element ); 
           }
         }
       });
